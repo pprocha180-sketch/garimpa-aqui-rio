@@ -10,7 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CategoriasRouteImport } from './routes/categorias'
+import { Route as CriarContaRouteImport } from './routes/criar-conta'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EnviarBrechoRouteImport } from './routes/enviar-brecho'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as BrechosIndexRouteImport } from './routes/brechos.index'
 import { Route as BrechosIdRouteImport } from './routes/brechos.$id'
 
@@ -19,9 +24,34 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriasRoute = CategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CriarContaRoute = CriarContaRouteImport.update({
+  id: '/criar-conta',
+  path: '/criar-conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnviarBrechoRoute = EnviarBrechoRouteImport.update({
+  id: '/enviar-brecho',
+  path: '/enviar-brecho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BrechosIndexRoute = BrechosIndexRouteImport.update({
@@ -37,34 +67,82 @@ const BrechosIdRoute = BrechosIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categorias': typeof CategoriasRoute
+  '/criar-conta': typeof CriarContaRoute
+  '/entrar': typeof EntrarRoute
+  '/enviar-brecho': typeof EnviarBrechoRoute
+  '/perfil': typeof PerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categorias': typeof CategoriasRoute
+  '/criar-conta': typeof CriarContaRoute
+  '/entrar': typeof EntrarRoute
+  '/enviar-brecho': typeof EnviarBrechoRoute
+  '/perfil': typeof PerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos': typeof BrechosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categorias': typeof CategoriasRoute
+  '/criar-conta': typeof CriarContaRoute
+  '/entrar': typeof EntrarRoute
+  '/enviar-brecho': typeof EnviarBrechoRoute
+  '/perfil': typeof PerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/categorias' | '/brechos/$id' | '/brechos/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/categorias'
+    | '/criar-conta'
+    | '/entrar'
+    | '/enviar-brecho'
+    | '/perfil'
+    | '/brechos/$id'
+    | '/brechos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/categorias' | '/brechos/$id' | '/brechos'
-  id: '__root__' | '/' | '/categorias' | '/brechos/$id' | '/brechos/'
+  to:
+    | '/'
+    | '/admin'
+    | '/categorias'
+    | '/criar-conta'
+    | '/entrar'
+    | '/enviar-brecho'
+    | '/perfil'
+    | '/brechos/$id'
+    | '/brechos'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/categorias'
+    | '/criar-conta'
+    | '/entrar'
+    | '/enviar-brecho'
+    | '/perfil'
+    | '/brechos/$id'
+    | '/brechos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CategoriasRoute: typeof CategoriasRoute
+  CriarContaRoute: typeof CriarContaRoute
+  EntrarRoute: typeof EntrarRoute
+  EnviarBrechoRoute: typeof EnviarBrechoRoute
+  PerfilRoute: typeof PerfilRoute
   BrechosIdRoute: typeof BrechosIdRoute
   BrechosIndexRoute: typeof BrechosIndexRoute
 }
@@ -78,11 +156,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/categorias': {
       id: '/categorias'
       path: '/categorias'
       fullPath: '/categorias'
       preLoaderRoute: typeof CategoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/criar-conta': {
+      id: '/criar-conta'
+      path: '/criar-conta'
+      fullPath: '/criar-conta'
+      preLoaderRoute: typeof CriarContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enviar-brecho': {
+      id: '/enviar-brecho'
+      path: '/enviar-brecho'
+      fullPath: '/enviar-brecho'
+      preLoaderRoute: typeof EnviarBrechoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brechos/': {
@@ -104,7 +217,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CategoriasRoute: CategoriasRoute,
+  CriarContaRoute: CriarContaRoute,
+  EntrarRoute: EntrarRoute,
+  EnviarBrechoRoute: EnviarBrechoRoute,
+  PerfilRoute: PerfilRoute,
   BrechosIdRoute: BrechosIdRoute,
   BrechosIndexRoute: BrechosIndexRoute,
 }
