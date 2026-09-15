@@ -7,7 +7,7 @@ import { useBrechos } from "@/hooks/useBrechos";
 
 type Busca = { categoria?: string; bairro?: string; visao?: "lista" | "mapa" };
 
-export const Route = createFileRoute("/brechos")({
+export const Route = createFileRoute("/brechos/")({
   validateSearch: (search: Record<string, unknown>): Busca => ({
     categoria: typeof search.categoria === "string" ? search.categoria : undefined,
     bairro: typeof search.bairro === "string" ? search.bairro : undefined,

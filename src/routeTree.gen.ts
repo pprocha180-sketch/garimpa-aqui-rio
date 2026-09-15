@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BrechosIndexRouteImport } from './routes/brechos.index'
+import { Route as BrechosIdRouteImport } from './routes/brechos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrechosIndexRoute = BrechosIndexRouteImport.update({
+  id: '/brechos/',
+  path: '/brechos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrechosIdRoute = BrechosIdRouteImport.update({
+  id: '/brechos/$id',
+  path: '/brechos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brechos/$id': typeof BrechosIdRoute
+  '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brechos/$id': typeof BrechosIdRoute
+  '/brechos': typeof BrechosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/brechos/$id': typeof BrechosIdRoute
+  '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/brechos/$id' | '/brechos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/brechos/$id' | '/brechos'
+  id: '__root__' | '/' | '/brechos/$id' | '/brechos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BrechosIdRoute: typeof BrechosIdRoute
+  BrechosIndexRoute: typeof BrechosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/brechos/': {
+      id: '/brechos/'
+      path: '/brechos'
+      fullPath: '/brechos/'
+      preLoaderRoute: typeof BrechosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brechos/$id': {
+      id: '/brechos/$id'
+      path: '/brechos/$id'
+      fullPath: '/brechos/$id'
+      preLoaderRoute: typeof BrechosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BrechosIdRoute: BrechosIdRoute,
+  BrechosIndexRoute: BrechosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
