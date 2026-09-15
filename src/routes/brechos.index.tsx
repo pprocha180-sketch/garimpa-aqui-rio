@@ -5,12 +5,16 @@ import { FiltrosBusca, type FiltrosValor } from "@/components/FiltrosBusca";
 import { EstadoErro, EstadoVazio, GridCarregando } from "@/components/estados";
 import { useBrechos } from "@/hooks/useBrechos";
 
-type Busca = { categoria: string; bairro: string; visao: "lista" | "mapa" };
+type Busca = {
+  categoria?: string | undefined;
+  bairro?: string | undefined;
+  visao?: "lista" | "mapa" | undefined;
+};
 
 export const Route = createFileRoute("/brechos/")({
   validateSearch: (search: Record<string, unknown>): Busca => ({
-    categoria: typeof search["categoria"] === "string" ? search["categoria"] : "",
-    bairro: typeof search["bairro"] === "string" ? search["bairro"] : "",
+    categoria: typeof search["categoria"] === "string" ? search["categoria"] : undefined,
+    bairro: typeof search["bairro"] === "string" ? search["bairro"] : undefined,
     visao: search["visao"] === "mapa" ? "mapa" : "lista",
   }),
   head: () => ({
