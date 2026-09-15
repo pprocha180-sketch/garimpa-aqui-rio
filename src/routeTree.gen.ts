@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as BrechosIndexRouteImport } from './routes/brechos.index'
 import { Route as BrechosIdRouteImport } from './routes/brechos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriasRoute = CategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BrechosIndexRoute = BrechosIndexRouteImport.update({
@@ -31,30 +37,34 @@ const BrechosIdRoute = BrechosIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/categorias': typeof CategoriasRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/categorias': typeof CategoriasRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos': typeof BrechosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/categorias': typeof CategoriasRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/brechos/$id' | '/brechos/'
+  fullPaths: '/' | '/categorias' | '/brechos/$id' | '/brechos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brechos/$id' | '/brechos'
-  id: '__root__' | '/' | '/brechos/$id' | '/brechos/'
+  to: '/' | '/categorias' | '/brechos/$id' | '/brechos'
+  id: '__root__' | '/' | '/categorias' | '/brechos/$id' | '/brechos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CategoriasRoute: typeof CategoriasRoute
   BrechosIdRoute: typeof BrechosIdRoute
   BrechosIndexRoute: typeof BrechosIndexRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categorias': {
+      id: '/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof CategoriasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brechos/': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CategoriasRoute: CategoriasRoute,
   BrechosIdRoute: BrechosIdRoute,
   BrechosIndexRoute: BrechosIndexRoute,
 }
