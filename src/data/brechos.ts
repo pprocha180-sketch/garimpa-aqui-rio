@@ -150,6 +150,19 @@ export const brechos: Brecho[] = [
   },
 ];
 
+// As fotos continuam locais nesta etapa: o banco guarda os dados,
+// e as imagens são associadas pelo slug do brechó.
+export const imagensPorSlug: Record<string, { capa: string; galeria: string[] }> = {
+  "riostar-brecho": { capa: capa1, galeria: [capa1, capa5, capa4] },
+  "boemia-das-araras": { capa: capa2, galeria: [capa2, capa6, capa4] },
+  "zona-sul-calcados": { capa: capa3, galeria: [capa3, capa1, capa5] },
+  "garimpo-carioca": { capa: capa5, galeria: [capa5, capa2, capa6] },
+  "dona-pedra-acessorios": { capa: capa4, galeria: [capa4, capa1, capa6] },
+  "vinil-da-ponte": { capa: capa6, galeria: [capa6, capa4, capa2] },
+};
+
+export const imagensPadrao = { capa: capa1, galeria: [capa1, capa2, capa3] };
+
 export function buscarBrechos(opts: {
   termo?: string;
   bairro?: string;
