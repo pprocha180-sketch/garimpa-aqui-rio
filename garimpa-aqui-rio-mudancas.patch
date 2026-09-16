@@ -1,0 +1,567 @@
+diff --git a/src/components/FormShell.tsx b/src/components/FormShell.tsx
+index 7e55920..61527ff 100644
+--- a/src/components/FormShell.tsx
++++ b/src/components/FormShell.tsx
+@@ -14,7 +14,10 @@ export function Campo({
+ }) {
+   return (
+     <div>
+-      <label htmlFor={id} className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink/60">
++      <label
++        htmlFor={id}
++        className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink/60"
++      >
+         {rotulo}
+       </label>
+       {children}
+@@ -29,6 +32,7 @@ export function FormShell({
+   children,
+   acao,
+   rodape,
++  enviando,
+ }: {
+   titulo: string;
+   descricao?: string;
+@@ -36,6 +40,7 @@ export function FormShell({
+   children: ReactNode;
+   acao: string;
+   rodape?: ReactNode;
++  enviando?: boolean;
+ }) {
+   return (
+     <section className="mx-auto max-w-xl px-4 py-12">
+@@ -46,7 +51,8 @@ export function FormShell({
+           {children}
+           <button
+             type="submit"
+-            className="mt-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-brand-foreground transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
++            disabled={enviando}
++            className="mt-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-brand-foreground transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
+           >
+             {acao}
+           </button>
+diff --git a/src/lib/brechos.functions.ts b/src/lib/brechos.functions.ts
+index 7cff6ea..c1e8ea9 100644
+--- a/src/lib/brechos.functions.ts
++++ b/src/lib/brechos.functions.ts
+@@ -1,5 +1,7 @@
+ import { createServerFn } from "@tanstack/react-start";
+ import { createClient } from "@supabase/supabase-js";
++import { z } from "zod";
++import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+ 
+ export type BrechoRow = {
+   id: string;
+@@ -55,3 +57,51 @@ export const listarBrechos = createServerFn({ method: "GET" }).handler(async ()
+   if (error) throw new Error(error.message);
+   return (data ?? []) as unknown as BrechoRow[];
+ });
++
++function gerarSlug(nome: string): string {
++  const base = nome
++    .normalize("NFD")
++    .replace(/[\u0300-\u036f]/g, "")
++    .toLowerCase()
++    .trim()
++    .replace(/[^a-z0-9]+/g, "-")
++    .replace(/^-+|-+$/g, "");
++  const sufixo = Math.random().toString(36).slice(2, 8);
++  return `${base || "brecho"}-${sufixo}`;
++}
++
++const enviarBrechoSchema = z.object({
++  nome: z.string().trim().min(2, "Informe o nome do brechó").max(120),
++  bairro: z.string().trim().min(2, "Informe o bairro").max(80),
++  categoria: z.string().trim().min(2, "Escolha uma categoria").max(60),
++  endereco: z.string().trim().min(3, "Informe o endereço ou forma de atendimento").max(200),
++  instagram: z.string().trim().max(120).optional().or(z.literal("")),
++  whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
++  descricao: z.string().trim().max(1000).optional().or(z.literal("")),
++});
++
++export const enviarBrecho = createServerFn({ method: "POST" })
++  .middleware([requireSupabaseAuth])
++  .validator((dados: unknown) => enviarBrechoSchema.parse(dados))
++  .handler(async ({ data, context }) => {
++    const instagramUrl = data.instagram
++      ? `https://instagram.com/${data.instagram.replace(/^@/, "").trim()}`
++      : null;
++
++    const { error } = await context.supabase.from("brechos").insert({
++      nome: data.nome,
++      slug: gerarSlug(data.nome),
++      descricao: data.descricao || "Descrição em breve.",
++      endereco: data.endereco,
++      bairro: data.bairro,
++      cidade: "Rio de Janeiro",
++      estado: "RJ",
++      categorias: [data.categoria],
++      instagram_url: instagramUrl,
++      whatsapp: data.whatsapp || null,
++      status: "pending",
++    });
++
++    if (error) throw new Error(error.message);
++    return { ok: true as const };
++  });
+diff --git a/src/routeTree.gen.ts b/src/routeTree.gen.ts
+index e6af55a..65c48f4 100644
+--- a/src/routeTree.gen.ts
++++ b/src/routeTree.gen.ts
+@@ -10,12 +10,13 @@
+ 
+ import { Route as rootRouteImport } from './routes/__root'
+ import { Route as IndexRouteImport } from './routes/index'
++import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+ import { Route as AdminRouteImport } from './routes/admin'
+ import { Route as CategoriasRouteImport } from './routes/categorias'
+ import { Route as CriarContaRouteImport } from './routes/criar-conta'
+ import { Route as EntrarRouteImport } from './routes/entrar'
+-import { Route as EnviarBrechoRouteImport } from './routes/enviar-brecho'
+ import { Route as PerfilRouteImport } from './routes/perfil'
++import { Route as AuthenticatedEnviarBrechoRouteImport } from './routes/_authenticated/enviar-brecho'
+ import { Route as BrechosIndexRouteImport } from './routes/brechos.index'
+ import { Route as BrechosIdRouteImport } from './routes/brechos.$id'
+ 
+@@ -24,6 +25,10 @@ const IndexRoute = IndexRouteImport.update({
+   path: '/',
+   getParentRoute: () => rootRouteImport,
+ } as any)
++const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
++  id: '/_authenticated',
++  getParentRoute: () => rootRouteImport,
++} as any)
+ const AdminRoute = AdminRouteImport.update({
+   id: '/admin',
+   path: '/admin',
+@@ -44,16 +49,17 @@ const EntrarRoute = EntrarRouteImport.update({
+   path: '/entrar',
+   getParentRoute: () => rootRouteImport,
+ } as any)
+-const EnviarBrechoRoute = EnviarBrechoRouteImport.update({
+-  id: '/enviar-brecho',
+-  path: '/enviar-brecho',
+-  getParentRoute: () => rootRouteImport,
+-} as any)
+ const PerfilRoute = PerfilRouteImport.update({
+   id: '/perfil',
+   path: '/perfil',
+   getParentRoute: () => rootRouteImport,
+ } as any)
++const AuthenticatedEnviarBrechoRoute =
++  AuthenticatedEnviarBrechoRouteImport.update({
++    id: '/enviar-brecho',
++    path: '/enviar-brecho',
++    getParentRoute: () => AuthenticatedRouteRoute,
++  } as any)
+ const BrechosIndexRoute = BrechosIndexRouteImport.update({
+   id: '/brechos/',
+   path: '/brechos/',
+@@ -71,8 +77,8 @@ export interface FileRoutesByFullPath {
+   '/categorias': typeof CategoriasRoute
+   '/criar-conta': typeof CriarContaRoute
+   '/entrar': typeof EntrarRoute
+-  '/enviar-brecho': typeof EnviarBrechoRoute
+   '/perfil': typeof PerfilRoute
++  '/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+   '/brechos/$id': typeof BrechosIdRoute
+   '/brechos/': typeof BrechosIndexRoute
+ }
+@@ -82,20 +88,21 @@ export interface FileRoutesByTo {
+   '/categorias': typeof CategoriasRoute
+   '/criar-conta': typeof CriarContaRoute
+   '/entrar': typeof EntrarRoute
+-  '/enviar-brecho': typeof EnviarBrechoRoute
+   '/perfil': typeof PerfilRoute
++  '/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+   '/brechos/$id': typeof BrechosIdRoute
+   '/brechos': typeof BrechosIndexRoute
+ }
+ export interface FileRoutesById {
+   __root__: typeof rootRouteImport
+   '/': typeof IndexRoute
++  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+   '/admin': typeof AdminRoute
+   '/categorias': typeof CategoriasRoute
+   '/criar-conta': typeof CriarContaRoute
+   '/entrar': typeof EntrarRoute
+-  '/enviar-brecho': typeof EnviarBrechoRoute
+   '/perfil': typeof PerfilRoute
++  '/_authenticated/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+   '/brechos/$id': typeof BrechosIdRoute
+   '/brechos/': typeof BrechosIndexRoute
+ }
+@@ -107,8 +114,8 @@ export interface FileRouteTypes {
+     | '/categorias'
+     | '/criar-conta'
+     | '/entrar'
+-    | '/enviar-brecho'
+     | '/perfil'
++    | '/enviar-brecho'
+     | '/brechos/$id'
+     | '/brechos/'
+   fileRoutesByTo: FileRoutesByTo
+@@ -118,30 +125,31 @@ export interface FileRouteTypes {
+     | '/categorias'
+     | '/criar-conta'
+     | '/entrar'
+-    | '/enviar-brecho'
+     | '/perfil'
++    | '/enviar-brecho'
+     | '/brechos/$id'
+     | '/brechos'
+   id:
+     | '__root__'
+     | '/'
++    | '/_authenticated'
+     | '/admin'
+     | '/categorias'
+     | '/criar-conta'
+     | '/entrar'
+-    | '/enviar-brecho'
+     | '/perfil'
++    | '/_authenticated/enviar-brecho'
+     | '/brechos/$id'
+     | '/brechos/'
+   fileRoutesById: FileRoutesById
+ }
+ export interface RootRouteChildren {
+   IndexRoute: typeof IndexRoute
++  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+   AdminRoute: typeof AdminRoute
+   CategoriasRoute: typeof CategoriasRoute
+   CriarContaRoute: typeof CriarContaRoute
+   EntrarRoute: typeof EntrarRoute
+-  EnviarBrechoRoute: typeof EnviarBrechoRoute
+   PerfilRoute: typeof PerfilRoute
+   BrechosIdRoute: typeof BrechosIdRoute
+   BrechosIndexRoute: typeof BrechosIndexRoute
+@@ -156,6 +164,13 @@ declare module '@tanstack/react-router' {
+       preLoaderRoute: typeof IndexRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/_authenticated': {
++      id: '/_authenticated'
++      path: ''
++      fullPath: '/'
++      preLoaderRoute: typeof AuthenticatedRouteRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/admin': {
+       id: '/admin'
+       path: '/admin'
+@@ -184,13 +199,6 @@ declare module '@tanstack/react-router' {
+       preLoaderRoute: typeof EntrarRouteImport
+       parentRoute: typeof rootRouteImport
+     }
+-    '/enviar-brecho': {
+-      id: '/enviar-brecho'
+-      path: '/enviar-brecho'
+-      fullPath: '/enviar-brecho'
+-      preLoaderRoute: typeof EnviarBrechoRouteImport
+-      parentRoute: typeof rootRouteImport
+-    }
+     '/perfil': {
+       id: '/perfil'
+       path: '/perfil'
+@@ -198,6 +206,13 @@ declare module '@tanstack/react-router' {
+       preLoaderRoute: typeof PerfilRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/_authenticated/enviar-brecho': {
++      id: '/_authenticated/enviar-brecho'
++      path: '/enviar-brecho'
++      fullPath: '/enviar-brecho'
++      preLoaderRoute: typeof AuthenticatedEnviarBrechoRouteImport
++      parentRoute: typeof AuthenticatedRouteRoute
++    }
+     '/brechos/': {
+       id: '/brechos/'
+       path: '/brechos'
+@@ -215,13 +230,24 @@ declare module '@tanstack/react-router' {
+   }
+ }
+ 
++interface AuthenticatedRouteRouteChildren {
++  AuthenticatedEnviarBrechoRoute: typeof AuthenticatedEnviarBrechoRoute
++}
++
++const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
++  AuthenticatedEnviarBrechoRoute: AuthenticatedEnviarBrechoRoute,
++}
++
++const AuthenticatedRouteRouteWithChildren =
++  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
++
+ const rootRouteChildren: RootRouteChildren = {
+   IndexRoute: IndexRoute,
++  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+   AdminRoute: AdminRoute,
+   CategoriasRoute: CategoriasRoute,
+   CriarContaRoute: CriarContaRoute,
+   EntrarRoute: EntrarRoute,
+-  EnviarBrechoRoute: EnviarBrechoRoute,
+   PerfilRoute: PerfilRoute,
+   BrechosIdRoute: BrechosIdRoute,
+   BrechosIndexRoute: BrechosIndexRoute,
+diff --git a/src/routes/_authenticated/enviar-brecho.tsx b/src/routes/_authenticated/enviar-brecho.tsx
+new file mode 100644
+index 0000000..3523a3b
+--- /dev/null
++++ b/src/routes/_authenticated/enviar-brecho.tsx
+@@ -0,0 +1,154 @@
++import { createFileRoute } from "@tanstack/react-router";
++import { useState } from "react";
++import { useMutation } from "@tanstack/react-query";
++import { Campo, FormShell, inputClasses } from "@/components/FormShell";
++import { bairros, categorias } from "@/data/brechos";
++import { enviarBrecho } from "@/lib/brechos.functions";
++
++export const Route = createFileRoute("/_authenticated/enviar-brecho")({
++  head: () => ({
++    meta: [
++      { title: "Enviar brechó — Garimpa Aqui" },
++      {
++        name: "description",
++        content: "Indique um brechó do Rio de Janeiro para entrar no catálogo do Garimpa Aqui.",
++      },
++      { property: "og:title", content: "Enviar brechó — Garimpa Aqui" },
++      { property: "og:description", content: "Indique um brechó do Rio para o catálogo." },
++    ],
++  }),
++  component: EnviarBrecho,
++});
++
++function EnviarBrecho() {
++  const [erro, setErro] = useState<string | null>(null);
++  const mutacao = useMutation({
++    mutationFn: (formData: FormData) =>
++      enviarBrecho({
++        data: {
++          nome: String(formData.get("nome-brecho") ?? ""),
++          bairro: String(formData.get("bairro-brecho") ?? ""),
++          categoria: String(formData.get("categoria-brecho") ?? ""),
++          endereco: String(formData.get("endereco-brecho") ?? ""),
++          instagram: String(formData.get("instagram-brecho") ?? ""),
++          whatsapp: String(formData.get("whatsapp-brecho") ?? ""),
++          descricao: String(formData.get("descricao-brecho") ?? ""),
++        },
++      }),
++    onError: (err: Error) =>
++      setErro(err.message || "Não foi possível enviar agora. Tente novamente."),
++  });
++
++  return (
++    <FormShell
++      titulo="Enviar brechó"
++      descricao="Indique um brechó do estado do Rio. A equipe revisa antes de publicar."
++      acao={mutacao.isPending ? "Enviando…" : "Enviar para revisão"}
++      enviando={mutacao.isPending}
++      onSubmit={(e) => {
++        e.preventDefault();
++        setErro(null);
++        mutacao.mutate(new FormData(e.currentTarget));
++      }}
++      rodape={
++        mutacao.isSuccess ? (
++          <p role="status" className="rounded-xl bg-mint px-4 py-2 font-semibold text-brand">
++            Recebemos sua indicação! Nossa equipe vai revisar antes de publicar no catálogo.
++          </p>
++        ) : erro ? (
++          <p role="alert" className="rounded-xl bg-red-100 px-4 py-2 font-semibold text-red-700">
++            {erro}
++          </p>
++        ) : null
++      }
++    >
++      <Campo id="nome-brecho" rotulo="Nome do brechó">
++        <input
++          id="nome-brecho"
++          name="nome-brecho"
++          type="text"
++          required
++          disabled={mutacao.isPending}
++          className={inputClasses}
++        />
++      </Campo>
++      <Campo id="bairro-brecho" rotulo="Bairro">
++        <select
++          id="bairro-brecho"
++          name="bairro-brecho"
++          required
++          disabled={mutacao.isPending}
++          className={inputClasses}
++          defaultValue=""
++        >
++          <option value="" disabled>
++            Escolha um bairro
++          </option>
++          {bairros.map((b) => (
++            <option key={b} value={b}>
++              {b}
++            </option>
++          ))}
++        </select>
++      </Campo>
++      <Campo id="categoria-brecho" rotulo="Categoria principal">
++        <select
++          id="categoria-brecho"
++          name="categoria-brecho"
++          required
++          disabled={mutacao.isPending}
++          className={inputClasses}
++          defaultValue=""
++        >
++          <option value="" disabled>
++            Escolha uma categoria
++          </option>
++          {categorias.map((c) => (
++            <option key={c.slug} value={c.nome}>
++              {c.nome}
++            </option>
++          ))}
++        </select>
++      </Campo>
++      <Campo id="endereco-brecho" rotulo="Endereço ou forma de atendimento">
++        <input
++          id="endereco-brecho"
++          name="endereco-brecho"
++          type="text"
++          required
++          disabled={mutacao.isPending}
++          className={inputClasses}
++        />
++      </Campo>
++      <Campo id="instagram-brecho" rotulo="Instagram">
++        <input
++          id="instagram-brecho"
++          name="instagram-brecho"
++          type="text"
++          placeholder="@brecho"
++          disabled={mutacao.isPending}
++          className={inputClasses}
++        />
++      </Campo>
++      <Campo id="whatsapp-brecho" rotulo="WhatsApp">
++        <input
++          id="whatsapp-brecho"
++          name="whatsapp-brecho"
++          type="tel"
++          placeholder="(21) 99999-0000"
++          disabled={mutacao.isPending}
++          className={inputClasses}
++        />
++      </Campo>
++      <Campo id="descricao-brecho" rotulo="Descrição">
++        <textarea
++          id="descricao-brecho"
++          name="descricao-brecho"
++          rows={4}
++          disabled={mutacao.isPending}
++          className={inputClasses}
++        />
++      </Campo>
++    </FormShell>
++  );
++}
+diff --git a/src/routes/enviar-brecho.tsx b/src/routes/enviar-brecho.tsx
+deleted file mode 100644
+index ecf15b5..0000000
+--- a/src/routes/enviar-brecho.tsx
++++ /dev/null
+@@ -1,82 +0,0 @@
+-import { createFileRoute } from "@tanstack/react-router";
+-import { useState } from "react";
+-import { Campo, FormShell, inputClasses } from "@/components/FormShell";
+-import { bairros, categorias } from "@/data/brechos";
+-
+-export const Route = createFileRoute("/enviar-brecho")({
+-  head: () => ({
+-    meta: [
+-      { title: "Enviar brechó — Garimpa Aqui" },
+-      {
+-        name: "description",
+-        content: "Indique um brechó do Rio de Janeiro para entrar no catálogo do Garimpa Aqui.",
+-      },
+-      { property: "og:title", content: "Enviar brechó — Garimpa Aqui" },
+-      { property: "og:description", content: "Indique um brechó do Rio para o catálogo." },
+-    ],
+-  }),
+-  component: EnviarBrecho,
+-});
+-
+-function EnviarBrecho() {
+-  const [enviado, setEnviado] = useState(false);
+-
+-  return (
+-    <FormShell
+-      titulo="Enviar brechó"
+-      descricao="Indique um brechó do estado do Rio. A equipe revisa antes de publicar."
+-      acao="Enviar para revisão"
+-      onSubmit={(e) => {
+-        e.preventDefault();
+-        setEnviado(true);
+-      }}
+-      rodape={
+-        enviado ? (
+-          <p role="status" className="rounded-xl bg-mint px-4 py-2 font-semibold text-brand">
+-            Recebemos sua indicação! Nesta versão os envios ficam apenas no seu aparelho.
+-          </p>
+-        ) : null
+-      }
+-    >
+-      <Campo id="nome-brecho" rotulo="Nome do brechó">
+-        <input id="nome-brecho" type="text" required className={inputClasses} />
+-      </Campo>
+-      <Campo id="bairro-brecho" rotulo="Bairro">
+-        <select id="bairro-brecho" required className={inputClasses} defaultValue="">
+-          <option value="" disabled>
+-            Escolha um bairro
+-          </option>
+-          {bairros.map((b) => (
+-            <option key={b} value={b}>
+-              {b}
+-            </option>
+-          ))}
+-        </select>
+-      </Campo>
+-      <Campo id="categoria-brecho" rotulo="Categoria principal">
+-        <select id="categoria-brecho" required className={inputClasses} defaultValue="">
+-          <option value="" disabled>
+-            Escolha uma categoria
+-          </option>
+-          {categorias.map((c) => (
+-            <option key={c.slug} value={c.nome}>
+-              {c.nome}
+-            </option>
+-          ))}
+-        </select>
+-      </Campo>
+-      <Campo id="endereco-brecho" rotulo="Endereço ou forma de atendimento">
+-        <input id="endereco-brecho" type="text" required className={inputClasses} />
+-      </Campo>
+-      <Campo id="instagram-brecho" rotulo="Instagram">
+-        <input id="instagram-brecho" type="text" placeholder="@brecho" className={inputClasses} />
+-      </Campo>
+-      <Campo id="whatsapp-brecho" rotulo="WhatsApp">
+-        <input id="whatsapp-brecho" type="tel" placeholder="(21) 99999-0000" className={inputClasses} />
+-      </Campo>
+-      <Campo id="descricao-brecho" rotulo="Descrição">
+-        <textarea id="descricao-brecho" rows={4} className={inputClasses} />
+-      </Campo>
+-    </FormShell>
+-  );
+-}
+diff --git a/supabase/migrations/20260916010000_add_brechos_insert_policy.sql b/supabase/migrations/20260916010000_add_brechos_insert_policy.sql
+new file mode 100644
+index 0000000..6df1e3f
+--- /dev/null
++++ b/supabase/migrations/20260916010000_add_brechos_insert_policy.sql
+@@ -0,0 +1,7 @@
++-- Permite que usuários autenticados enviem novos brechós (ficam como "pending" até aprovação)
++GRANT INSERT ON public.brechos TO authenticated;
++
++CREATE POLICY "Usuario autenticado envia brecho"
++ON public.brechos FOR INSERT
++TO authenticated
++WITH CHECK (status = 'pending');
