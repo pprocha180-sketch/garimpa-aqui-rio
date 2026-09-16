@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { BrechoCard } from "@/components/BrechoCard";
 import { FiltrosBusca, type FiltrosValor } from "@/components/FiltrosBusca";
 import { EstadoErro, EstadoVazio, GridCarregando } from "@/components/estados";
@@ -10,16 +10,16 @@ import { categorias } from "@/data/brechos";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-// Correção necessária para os ícones de pin padrão do mapa aparecerem no React/Vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
+// CORREÇÃO 1: Usamos URLs externas para os pins. Isso impede que o empacotador (Vite) quebre o site.
+const pinIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 });
 
 export const Route = createFileRoute("/")({
@@ -42,13 +42,17 @@ export const Route = createFileRoute("/")({
 });
 
 const coresCategoria = ["bg-clay", "bg-mint", "bg-accent-warm/30", "bg-brand/15"];
-
-// Coordenadas centrais do Rio de Janeiro
 const CENTRO_RJ: [number, number] = [-22.9068, -43.1729];
 
 function Inicio() {
   const [filtros, setFiltros] = useState<FiltrosValor>({ termo: "", bairro: "", categoria: "" });
   const { data, isPending, isError, refetch } = useBrechos();
+
+  // CORREÇÃO 2: Controlamos o mapa para carregar só no navegador, evitando erros de "window not defined"
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const resultados = useMemo(() => {
     const lista = data ?? [];
@@ -148,37 +152,36 @@ function Inicio() {
         ) : (
           <div className="flex flex-col gap-6">
             
-            {/* Seção do Mapa (Apenas renderiza os itens que estão na 'lista' filtrada) */}
-            <div className="h-[400px] w-full overflow-hidden rounded-2xl border border-border shadow-sm" style={{ zIndex: 0 }}>
-              <MapContainer 
-                center={CENTRO_RJ} 
-                zoom={11} 
-                scrollWheelZoom={false} 
-                className="h-full w-full"
-                style={{ zIndex: 0 }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {lista.map((b: any) => (
-                  /* Só renderiza o pin se o brechó tiver latitude e longitude cadastradas */
-                  b.latitude && b.longitude ? (
-                    <Marker key={`map-${b.id}`} position={[b.latitude, b.longitude]}>
-                      <Popup>
-                        <div className="font-display font-bold text-base">{b.nome}</div>
-                        <div className="text-sm text-muted-foreground">{b.bairro}</div>
-                        <Link to={`/brechos/${b.id}`} className="mt-2 block text-sm font-bold text-brand hover:underline">
-                          Ver detalhes →
-                        </Link>
-                      </Popup>
-                    </Marker>
-                  ) : null
-                ))}
-              </MapContainer>
-            </div>
+            {isMounted && (
+              <div className="h-[400px] w-full overflow-hidden rounded-2xl border border-border shadow-sm" style={{ zIndex: 0 }}>
+                <MapContainer 
+                  center={CENTRO_RJ} 
+                  zoom={11} 
+                  scrollWheelZoom={false} 
+                  className="h-full w-full"
+                  style={{ zIndex: 0 }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  {lista.map((b: any) => (
+                    b.latitude && b.longitude ? (
+                      <Marker key={`map-${b.id}`} position={[b.latitude, b.longitude]} icon={pinIcon}>
+                        <Popup>
+                          <div className="font-display font-bold text-base">{b.nome}</div>
+                          <div className="text-sm text-muted-foreground">{b.bairro}</div>
+                          <Link to={`/brechos/${b.id}`} className="mt-2 block text-sm font-bold text-brand hover:underline">
+                            Ver detalhes →
+                          </Link>
+                        </Popup>
+                      </Marker>
+                    ) : null
+                  ))}
+                </MapContainer>
+              </div>
+            )}
 
-            {/* Grid de Cards (Abaixo do mapa) */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {lista.map((b) => (
                 <BrechoCard key={b.id} brecho={b} />
