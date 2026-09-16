@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brechos: {
+        Row: {
+          atualizado_em: string
+          bairro: string
+          categorias: string[]
+          cidade: string
+          criado_em: string
+          descricao: string
+          destaque: boolean
+          endereco: string | null
+          estado: string
+          faixa_preco: string | null
+          horario_funcionamento: string | null
+          id: string
+          imagem_capa_url: string | null
+          instagram_url: string | null
+          latitude: number | null
+          longitude: number | null
+          nome: string
+          slug: string
+          status: string
+          tem_loja_fisica: boolean
+          vende_online: boolean
+          website_url: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          bairro: string
+          categorias?: string[]
+          cidade: string
+          criado_em?: string
+          descricao: string
+          destaque?: boolean
+          endereco?: string | null
+          estado: string
+          faixa_preco?: string | null
+          horario_funcionamento?: string | null
+          id?: string
+          imagem_capa_url?: string | null
+          instagram_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          nome: string
+          slug: string
+          status?: string
+          tem_loja_fisica?: boolean
+          vende_online?: boolean
+          website_url?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          bairro?: string
+          categorias?: string[]
+          cidade?: string
+          criado_em?: string
+          descricao?: string
+          destaque?: boolean
+          endereco?: string | null
+          estado?: string
+          faixa_preco?: string | null
+          horario_funcionamento?: string | null
+          id?: string
+          imagem_capa_url?: string | null
+          instagram_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          nome?: string
+          slug?: string
+          status?: string
+          tem_loja_fisica?: boolean
+          vende_online?: boolean
+          website_url?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
