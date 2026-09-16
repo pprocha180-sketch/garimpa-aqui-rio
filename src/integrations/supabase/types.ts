@@ -92,6 +92,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          nome: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id: string
+          nome?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
