@@ -14,7 +14,10 @@ export function Campo({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink/60">
+      <label
+        htmlFor={id}
+        className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink/60"
+      >
         {rotulo}
       </label>
       {children}
@@ -29,6 +32,7 @@ export function FormShell({
   children,
   acao,
   rodape,
+  enviando,
 }: {
   titulo: string;
   descricao?: string;
@@ -36,6 +40,7 @@ export function FormShell({
   children: ReactNode;
   acao: string;
   rodape?: ReactNode;
+  enviando?: boolean;
 }) {
   return (
     <section className="mx-auto max-w-xl px-4 py-12">
@@ -46,7 +51,8 @@ export function FormShell({
           {children}
           <button
             type="submit"
-            className="mt-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-brand-foreground transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            disabled={enviando}
+            className="mt-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-brand-foreground transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
           >
             {acao}
           </button>
