@@ -6,6 +6,22 @@ import { EstadoErro, EstadoVazio, GridCarregando } from "@/components/estados";
 import { useBrechos } from "@/hooks/useBrechos";
 import { categorias } from "@/data/brechos";
 
+// Importações do Mapa (Leaflet)
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Correção necessária para os ícones de pin padrão do mapa aparecerem no React/Vite
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -26,6 +42,9 @@ export const Route = createFileRoute("/")({
 });
 
 const coresCategoria = ["bg-clay", "bg-mint", "bg-accent-warm/30", "bg-brand/15"];
+
+// Coordenadas centrais do Rio de Janeiro
+const CENTRO_RJ: [number, number] = [-22.9068, -43.1729];
 
 function Inicio() {
   const [filtros, setFiltros] = useState<FiltrosValor>({ termo: "", bairro: "", categoria: "" });
@@ -74,14 +93,7 @@ function Inicio() {
               to="/brechos"
               className="rounded-full bg-cream/15 px-3 py-1.5 font-semibold transition hover:bg-cream/25"
             >
-              Ver lista
-            </Link>
-            <Link
-              to="/brechos"
-              search={{ visao: "mapa" }}
-              className="rounded-full bg-cream/15 px-3 py-1.5 font-semibold transition hover:bg-cream/25"
-            >
-              Ver no mapa
+              Ver todos os brechós
             </Link>
           </div>
         </div>
@@ -91,14 +103,13 @@ function Inicio() {
         <h2 className="mb-4 font-display text-xl font-bold">Categorias principais</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {categorias.map((c, i) => (
-            <Link
+            <button
               key={c.slug}
-              to="/brechos"
-              search={{ categoria: c.nome }}
+              onClick={() => setFiltros({ ...filtros, categoria: c.nome })}
               className={`rounded-2xl p-4 text-center font-bold shadow-sm transition hover:-translate-y-0.5 ${coresCategoria[i % 4]}`}
             >
               {c.nome}
-            </Link>
+            </button>
           ))}
         </div>
       </section>
@@ -108,9 +119,14 @@ function Inicio() {
           <h2 className="font-display text-xl font-bold">
             {temFiltro ? "Resultados da busca" : "Brechós em destaque"}
           </h2>
-          <Link to="/brechos" className="text-sm font-bold text-brand hover:underline">
-            Ver todos →
-          </Link>
+          {temFiltro && (
+            <button 
+              onClick={() => setFiltros({ termo: "", bairro: "", categoria: "" })}
+              className="text-sm font-bold text-brand hover:underline"
+            >
+              Limpar filtros ✕
+            </button>
+          )}
         </div>
 
         {isPending ? (
@@ -130,10 +146,44 @@ function Inicio() {
             }
           />
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {lista.map((b) => (
-              <BrechoCard key={b.id} brecho={b} />
-            ))}
+          <div className="flex flex-col gap-6">
+            
+            {/* Seção do Mapa (Apenas renderiza os itens que estão na 'lista' filtrada) */}
+            <div className="h-[400px] w-full overflow-hidden rounded-2xl border border-border shadow-sm" style={{ zIndex: 0 }}>
+              <MapContainer 
+                center={CENTRO_RJ} 
+                zoom={11} 
+                scrollWheelZoom={false} 
+                className="h-full w-full"
+                style={{ zIndex: 0 }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {lista.map((b: any) => (
+                  /* Só renderiza o pin se o brechó tiver latitude e longitude cadastradas */
+                  b.latitude && b.longitude ? (
+                    <Marker key={`map-${b.id}`} position={[b.latitude, b.longitude]}>
+                      <Popup>
+                        <div className="font-display font-bold text-base">{b.nome}</div>
+                        <div className="text-sm text-muted-foreground">{b.bairro}</div>
+                        <Link to={`/brechos/${b.id}`} className="mt-2 block text-sm font-bold text-brand hover:underline">
+                          Ver detalhes →
+                        </Link>
+                      </Popup>
+                    </Marker>
+                  ) : null
+                ))}
+              </MapContainer>
+            </div>
+
+            {/* Grid de Cards (Abaixo do mapa) */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {lista.map((b) => (
+                <BrechoCard key={b.id} brecho={b} />
+              ))}
+            </div>
           </div>
         )}
       </section>
