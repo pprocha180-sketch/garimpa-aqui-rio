@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { EstadoVazio } from "@/components/estados";
 
-export const Route = createFileRoute("/perfil")({
+export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
     meta: [
       { title: "Meu perfil — Garimpa Aqui" },

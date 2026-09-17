@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Campo, FormShell, inputClasses } from "@/components/FormShell";
 import { bairros, categorias } from "@/data/brechos";
 
-export const Route = createFileRoute("/enviar-brecho")({
+export const Route = createFileRoute("/_authenticated/enviar-brecho")({
   head: () => ({
     meta: [
       { title: "Enviar brechó — Garimpa Aqui" },
