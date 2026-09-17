@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BrechoCard } from "@/components/BrechoCard";
+import { MapaBrechos } from "@/components/MapaBrechos";
 import { FiltrosBusca, type FiltrosValor } from "@/components/FiltrosBusca";
 import { EstadoErro, EstadoVazio, GridCarregando } from "@/components/estados";
 import { useBrechos } from "@/hooks/useBrechos";
@@ -104,11 +105,9 @@ function ListaBrechos() {
             }
           />
         ) : visao === "mapa" ? (
-          <div className="rounded-3xl border border-brand/15 bg-surface p-6 shadow-sm">
-            <p className="text-sm font-bold text-ink/70">
-              O mapa chega em breve. Por enquanto, veja os endereços dos brechós encontrados:
-            </p>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="space-y-4">
+            <MapaBrechos brechos={resultados} />
+            <ul className="grid gap-3 sm:grid-cols-2">
               {resultados.map((b) => (
                 <li key={b.id} className="rounded-2xl bg-clay/40 p-4">
                   <p className="font-display font-bold">{b.nome}</p>
