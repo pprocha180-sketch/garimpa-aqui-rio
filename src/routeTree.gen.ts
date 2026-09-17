@@ -10,18 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CriarContaRouteImport } from './routes/criar-conta'
 import { Route as EntrarRouteImport } from './routes/entrar'
-import { Route as EnviarBrechoRouteImport } from './routes/enviar-brecho'
-import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as AuthenticatedEnviarBrechoRouteImport } from './routes/_authenticated/enviar-brecho'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as BrechosIndexRouteImport } from './routes/brechos.index'
 import { Route as BrechosIdRouteImport } from './routes/brechos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -44,15 +49,16 @@ const EntrarRoute = EntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EnviarBrechoRoute = EnviarBrechoRouteImport.update({
-  id: '/enviar-brecho',
-  path: '/enviar-brecho',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfilRoute = PerfilRouteImport.update({
+const AuthenticatedEnviarBrechoRoute =
+  AuthenticatedEnviarBrechoRouteImport.update({
+    id: '/enviar-brecho',
+    path: '/enviar-brecho',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const BrechosIndexRoute = BrechosIndexRouteImport.update({
   id: '/brechos/',
@@ -71,8 +77,8 @@ export interface FileRoutesByFullPath {
   '/categorias': typeof CategoriasRoute
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
-  '/enviar-brecho': typeof EnviarBrechoRoute
-  '/perfil': typeof PerfilRoute
+  '/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
@@ -82,20 +88,21 @@ export interface FileRoutesByTo {
   '/categorias': typeof CategoriasRoute
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
-  '/enviar-brecho': typeof EnviarBrechoRoute
-  '/perfil': typeof PerfilRoute
+  '/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos': typeof BrechosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRoute
   '/categorias': typeof CategoriasRoute
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
-  '/enviar-brecho': typeof EnviarBrechoRoute
-  '/perfil': typeof PerfilRoute
+  '/_authenticated/enviar-brecho': typeof AuthenticatedEnviarBrechoRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/brechos/$id': typeof BrechosIdRoute
   '/brechos/': typeof BrechosIndexRoute
 }
@@ -125,24 +132,24 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/admin'
     | '/categorias'
     | '/criar-conta'
     | '/entrar'
-    | '/enviar-brecho'
-    | '/perfil'
+    | '/_authenticated/enviar-brecho'
+    | '/_authenticated/perfil'
     | '/brechos/$id'
     | '/brechos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRoute: typeof AdminRoute
   CategoriasRoute: typeof CategoriasRoute
   CriarContaRoute: typeof CriarContaRoute
   EntrarRoute: typeof EntrarRoute
-  EnviarBrechoRoute: typeof EnviarBrechoRoute
-  PerfilRoute: typeof PerfilRoute
   BrechosIdRoute: typeof BrechosIdRoute
   BrechosIndexRoute: typeof BrechosIndexRoute
 }
@@ -154,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -184,19 +198,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/enviar-brecho': {
-      id: '/enviar-brecho'
+    '/_authenticated/enviar-brecho': {
+      id: '/_authenticated/enviar-brecho'
       path: '/enviar-brecho'
       fullPath: '/enviar-brecho'
-      preLoaderRoute: typeof EnviarBrechoRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedEnviarBrechoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/perfil': {
-      id: '/perfil'
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
       path: '/perfil'
       fullPath: '/perfil'
-      preLoaderRoute: typeof PerfilRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/brechos/': {
       id: '/brechos/'
@@ -215,14 +229,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedEnviarBrechoRoute: typeof AuthenticatedEnviarBrechoRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedEnviarBrechoRoute: AuthenticatedEnviarBrechoRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRoute: AdminRoute,
   CategoriasRoute: CategoriasRoute,
   CriarContaRoute: CriarContaRoute,
   EntrarRoute: EntrarRoute,
-  EnviarBrechoRoute: EnviarBrechoRoute,
-  PerfilRoute: PerfilRoute,
   BrechosIdRoute: BrechosIdRoute,
   BrechosIndexRoute: BrechosIndexRoute,
 }
