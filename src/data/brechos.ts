@@ -21,6 +21,8 @@ export type Brecho = {
   whatsapp: string;
   horario: string;
   destaque: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export const categorias = [

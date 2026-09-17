@@ -24,6 +24,8 @@ function paraBrecho(row: BrechoRow): Brecho {
     whatsapp: row.whatsapp ?? "",
     horario: row.horario_funcionamento ?? "",
     destaque: row.destaque,
+    latitude: row.latitude,
+    longitude: row.longitude,
   };
 }
 
