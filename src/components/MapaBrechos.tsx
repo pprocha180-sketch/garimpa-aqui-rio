@@ -7,6 +7,15 @@ type Props = {
   zoom?: number;
 };
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 /**
  * Mapa real (OpenStreetMap + Leaflet). A biblioteca é carregada só no navegador,
  * depois da hidratação, para não quebrar a renderização no servidor.
@@ -16,28 +25,34 @@ export function MapaBrechos({ brechos, altura = "28rem", zoom }: Props) {
   const mapaRef = useRef<{ remove: () => void } | null>(null);
 
   const comCoordenadas = brechos.filter(
-    (b) => typeof b.latitude === "number" && typeof b.longitude === "number",
+    (b) =>
+      typeof b.latitude === "number" &&
+      Number.isFinite(b.latitude) &&
+      typeof b.longitude === "number" &&
+      Number.isFinite(b.longitude),
   );
-  const chave = comCoordenadas.map((b) => b.id).join("|");
+  const chave = comCoordenadas
+    .map((b) => `${b.id}:${b.latitude}:${b.longitude}`)
+    .join("|");
 
   useEffect(() => {
     let cancelado = false;
 
-    (async () => {
+    const inicializar = async () => {
       const L = await import("leaflet");
       if (cancelado || !containerRef.current) return;
 
       mapaRef.current?.remove();
 
-      const mapa = L.map(containerRef.current, { scrollWheelZoom: false }).setView(
-        [-22.9068, -43.1729],
-        zoom ?? 11,
-      );
+      const mapa = L.map(containerRef.current, {
+        scrollWheelZoom: false,
+      }).setView([-22.9068, -43.1729], zoom ?? 11);
       mapaRef.current = mapa;
 
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(mapa);
 
       const icone = L.divIcon({
@@ -48,27 +63,49 @@ export function MapaBrechos({ brechos, altura = "28rem", zoom }: Props) {
       });
 
       const marcadores = comCoordenadas.map((b) => {
-        const marcador = L.marker([b.latitude as number, b.longitude as number], {
-          icon: icone,
-          title: b.nome,
-          alt: b.nome,
-        }).addTo(mapa);
+        const marcador = L.marker(
+          [b.latitude as number, b.longitude as number],
+          {
+            icon: icone,
+            title: b.nome,
+            alt: b.nome,
+          },
+        ).addTo(mapa);
+
+        const nome = escapeHtml(b.nome);
+        const bairro = escapeHtml(b.bairro);
+        const id = encodeURIComponent(String(b.id));
         marcador.bindPopup(
-          `<strong>${b.nome}</strong><br/>${b.bairro}<br/><a href="/brechos/${b.id}">Ver brechó</a>`,
+          `<strong>${nome}</strong><br/>${bairro}<br/><a href="/brechos/${id}">Ver brechó</a>`,
         );
         return marcador;
       });
 
+      if (cancelado) {
+        mapa.remove();
+        return;
+      }
+
       if (marcadores.length === 1) {
         const unico = comCoordenadas[0]!;
-        mapa.setView([unico.latitude as number, unico.longitude as number], zoom ?? 15);
+        mapa.setView(
+          [unico.latitude as number, unico.longitude as number],
+          zoom ?? 15,
+        );
       } else if (marcadores.length > 1) {
         mapa.fitBounds(
-          L.latLngBounds(comCoordenadas.map((b) => [b.latitude as number, b.longitude as number])),
+          L.latLngBounds(
+            comCoordenadas.map((b) => [
+              b.latitude as number,
+              b.longitude as number,
+            ]),
+          ),
           { padding: [40, 40] },
         );
       }
-    })();
+    };
+
+    void inicializar();
 
     return () => {
       cancelado = true;
