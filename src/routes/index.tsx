@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BrechoCard } from "@/components/BrechoCard";
+import { MapaBrechos } from "@/components/MapaBrechos";
 import { FiltrosBusca, type FiltrosValor } from "@/components/FiltrosBusca";
 import { EstadoErro, EstadoVazio, GridCarregando } from "@/components/estados";
 import { useBrechos } from "@/hooks/useBrechos";
@@ -76,6 +77,13 @@ function Inicio() {
             >
               Ver todos os brechós
             </Link>
+            <Link
+              to="/brechos"
+              search={{ visao: "mapa" }}
+              className="rounded-full bg-cream/15 px-3 py-1.5 font-semibold transition hover:bg-cream/25"
+            >
+              Ver o mapa
+            </Link>
           </div>
         </div>
       </section>
@@ -129,10 +137,7 @@ function Inicio() {
         ) : (
           <div className="flex flex-col gap-6">
             
-            {/* Espaço reservado para o Mapa Futuro */}
-            <div className="flex h-[200px] w-full items-center justify-center rounded-2xl border border-dashed border-brand/30 bg-brand/5 text-brand/60 shadow-sm">
-              <p className="font-semibold">🗺️ Mapa indisponível temporariamente</p>
-            </div>
+            <MapaBrechos brechos={resultados} altura="22rem" />
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {lista.map((b) => (

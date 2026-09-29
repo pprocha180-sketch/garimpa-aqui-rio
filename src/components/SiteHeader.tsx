@@ -7,6 +7,8 @@ const links = [
   { to: "/enviar-brecho", label: "Enviar brechó" },
 ] as const;
 
+const linkMapa = { to: "/brechos", label: "Mapa" } as const;
+
 export function SiteHeader() {
   const [aberto, setAberto] = useState(false);
 
@@ -24,14 +26,24 @@ export function SiteHeader() {
           <nav className="hidden items-center gap-1 text-sm font-bold md:flex" aria-label="Principal">
             {links.map((l) => (
               <Link
-                key={l.to}
+                key={l.label}
                 to={l.to}
                 className="rounded-full px-3 py-2 transition hover:bg-mint/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 activeProps={{ className: "bg-mint" }}
+                activeOptions={{ includeSearch: false }}
               >
                 {l.label}
               </Link>
             ))}
+            <Link
+              to={linkMapa.to}
+              search={{ visao: "mapa" }}
+              className="rounded-full px-3 py-2 transition hover:bg-mint/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              activeProps={{ className: "bg-mint" }}
+              activeOptions={{ includeSearch: false }}
+            >
+              {linkMapa.label}
+            </Link>
           </nav>
           <Link
             to="/entrar"
@@ -65,7 +77,7 @@ export function SiteHeader() {
         >
           <ul className="grid gap-1 text-sm font-bold">
             {[...links, { to: "/entrar", label: "Entrar" }, { to: "/perfil", label: "Perfil" }].map((l) => (
-              <li key={l.to}>
+              <li key={l.label}>
                 <Link
                   to={l.to}
                   onClick={() => setAberto(false)}
@@ -76,6 +88,16 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                to={linkMapa.to}
+                search={{ visao: "mapa" }}
+                onClick={() => setAberto(false)}
+                className="block rounded-xl px-3 py-2 transition hover:bg-mint/60"
+              >
+                {linkMapa.label}
+              </Link>
+            </li>
           </ul>
         </nav>
       )}
