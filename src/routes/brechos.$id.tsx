@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { EstadoErro, EstadoVazio } from "@/components/estados";
 import { useBrecho } from "@/hooks/useBrechos";
+import { MapaBrechos } from "@/components/MapaBrechos";
 import { brechos } from "@/data/brechos";
 
 export const Route = createFileRoute("/brechos/$id")({
@@ -180,6 +181,10 @@ function DetalheBrecho() {
             >
               Como chegar
             </a>
+          </div>
+
+          <div className="mt-6">
+            <MapaBrechos brechos={[data]} altura="16rem" />
           </div>
         </div>
       </div>
