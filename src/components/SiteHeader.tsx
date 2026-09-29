@@ -2,11 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 const links = [
-  { to: "/brechos", label: "Brechós", search: undefined },
-  { to: "/brechos", label: "Mapa", search: { visao: "mapa" as const } },
-  { to: "/categorias", label: "Categorias", search: undefined },
-  { to: "/enviar-brecho", label: "Enviar brechó", search: undefined },
+  { to: "/brechos", label: "Brechós" },
+  { to: "/categorias", label: "Categorias" },
+  { to: "/enviar-brecho", label: "Enviar brechó" },
 ] as const;
+
+const linkMapa = { to: "/brechos", label: "Mapa" } as const;
 
 export function SiteHeader() {
   const [aberto, setAberto] = useState(false);
@@ -27,7 +28,6 @@ export function SiteHeader() {
               <Link
                 key={l.label}
                 to={l.to}
-                search={l.search}
                 className="rounded-full px-3 py-2 transition hover:bg-mint/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 activeProps={{ className: "bg-mint" }}
                 activeOptions={{ includeSearch: false }}
@@ -35,6 +35,15 @@ export function SiteHeader() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              to={linkMapa.to}
+              search={{ visao: "mapa" }}
+              className="rounded-full px-3 py-2 transition hover:bg-mint/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              activeProps={{ className: "bg-mint" }}
+              activeOptions={{ includeSearch: false }}
+            >
+              {linkMapa.label}
+            </Link>
           </nav>
           <Link
             to="/entrar"
@@ -67,11 +76,10 @@ export function SiteHeader() {
           className="mx-auto max-w-6xl px-4 pb-3 md:hidden"
         >
           <ul className="grid gap-1 text-sm font-bold">
-            {[...links, { to: "/entrar", label: "Entrar", search: undefined }, { to: "/perfil", label: "Perfil", search: undefined }].map((l) => (
+            {[...links, { to: "/entrar", label: "Entrar" }, { to: "/perfil", label: "Perfil" }].map((l) => (
               <li key={l.label}>
                 <Link
                   to={l.to}
-                  search={l.search}
                   onClick={() => setAberto(false)}
                   className="block rounded-xl px-3 py-2 transition hover:bg-mint/60"
                   activeProps={{ className: "bg-mint" }}
