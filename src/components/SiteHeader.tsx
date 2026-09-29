@@ -67,10 +67,11 @@ export function SiteHeader() {
           className="mx-auto max-w-6xl px-4 pb-3 md:hidden"
         >
           <ul className="grid gap-1 text-sm font-bold">
-            {[...links, { to: "/entrar", label: "Entrar" }, { to: "/perfil", label: "Perfil" }].map((l) => (
-              <li key={l.to}>
+            {[...links, { to: "/entrar", label: "Entrar", search: undefined }, { to: "/perfil", label: "Perfil", search: undefined }].map((l) => (
+              <li key={l.label}>
                 <Link
                   to={l.to}
+                  search={l.search}
                   onClick={() => setAberto(false)}
                   className="block rounded-xl px-3 py-2 transition hover:bg-mint/60"
                   activeProps={{ className: "bg-mint" }}
