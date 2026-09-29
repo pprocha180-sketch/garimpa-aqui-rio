@@ -2,9 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 const links = [
-  { to: "/brechos", label: "Brechós" },
-  { to: "/categorias", label: "Categorias" },
-  { to: "/enviar-brecho", label: "Enviar brechó" },
+  { to: "/brechos", label: "Brechós", search: undefined },
+  { to: "/brechos", label: "Mapa", search: { visao: "mapa" as const } },
+  { to: "/categorias", label: "Categorias", search: undefined },
+  { to: "/enviar-brecho", label: "Enviar brechó", search: undefined },
 ] as const;
 
 export function SiteHeader() {
@@ -24,10 +25,12 @@ export function SiteHeader() {
           <nav className="hidden items-center gap-1 text-sm font-bold md:flex" aria-label="Principal">
             {links.map((l) => (
               <Link
-                key={l.to}
+                key={l.label}
                 to={l.to}
+                search={l.search}
                 className="rounded-full px-3 py-2 transition hover:bg-mint/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 activeProps={{ className: "bg-mint" }}
+                activeOptions={{ includeSearch: false }}
               >
                 {l.label}
               </Link>
