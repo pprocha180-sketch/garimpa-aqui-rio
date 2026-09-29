@@ -88,6 +88,16 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                to={linkMapa.to}
+                search={{ visao: "mapa" }}
+                onClick={() => setAberto(false)}
+                className="block rounded-xl px-3 py-2 transition hover:bg-mint/60"
+              >
+                {linkMapa.label}
+              </Link>
+            </li>
           </ul>
         </nav>
       )}
